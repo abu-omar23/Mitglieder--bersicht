@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Vereinsmitglieder Übersicht</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f4f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #0057b7;
+      color: white;
+      padding: 1rem 2rem;
+      text-align: center;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 2rem auto;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      margin-top: 0;
+      text-align: center;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.8rem;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background: #f0f0f0;
+    }
+
+    tr:hover {
+      background: #f9f9f9;
+    }
+
+    button {
+      background: #0057b7;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #004199;
+    }
+
+    .btn-add {
+      margin-bottom: 1rem;
+      background: #008c45;
+    }
+
+    .btn-add:hover {
+      background: #007538;
+    }
+
+    /* Pop-up Formular */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+    }
+
+    .cancel {
+      background: #888;
+    }
+
+    .cancel:hover {
+      background: #666;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Vereinsmitglieder Übersicht</h1>
+  </header>
+
+  <main>
+    <h2>Mitgliederliste</h2>
+    <button class="btn-add" onclick="openModal()">+ Neues Mitglied</button>
+
+    <table id="memberTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Geburtsdatum</th>
+          <th>Telefon</th>
+          <th>E-Mail</th>
+          <th>Beitrittsdatum</th>
+          <th>Rolle</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+
+  <!-- Bearbeitungs-Modal -->
+  <div id="memberModal" class="modal">
+    <div class="modal-content">
+      <h3 id="modalTitle">Mitglied bearbeiten</h3>
+      <input type="text" id="name" placeholder="Name">
+      <input type="date" id="birthdate" placeholder="Geburtsdatum">
+      <input type="text" id="phone" placeholder="Telefonnummer">
+      <input type="email" id="email" placeholder="E-Mail">
+      <input type="date" id="joinDate" placeholder="Beitrittsdatum">
+      <input type="text" id="role" placeholder="Rolle im Verein">
+
+      <div class="modal-buttons">
+        <button onclick="saveMember()">Speichern</button>
+        <button class="cancel" onclick="closeModal()">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let members = JSON.parse(localStorage.getItem('members')) || [];
+    let editIndex = null;
+
+    function renderTable() {
+      const tbody = document.querySelector('#memberTable tbody');
+      tbody.innerHTML = '';
+
+      members.forEach((m, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${m.name}</td>
+          <td>${m.birthdate}</td>
+          <td>${m.phone}</td>
+          <td>${m.email}</td>
+          <td>${m.joinDate}</td>
+          <td>${m.role}</td>
+          <td>
+            <button onclick="editMember(${index})">Bearbeiten</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      localStorage.setItem('members', JSON.stringify(members));
+    }
+
+    function openModal(edit = false) {
+      document.getElementById('memberModal').style.display = 'flex';
+      document.getElementById('modalTitle').textContent = edit ? 'Mitglied bearbeiten' : 'Neues Mitglied hinzufügen';
+    }
+
+    function closeModal() {
+      document.getElementById('memberModal').style.display = 'none';
+      clearForm();
+      editIndex = null;
+    }
+
+    function clearForm() {
+      document.getElementById('name').value = '';
+      document.getElementById('birthdate').value = '';
+      document.getElementById('phone').value = '';
+      document.getElementById('email').value = '';
+      document.getElementById('joinDate').value = '';
+      document.getElementById('role').value = '';
+    }
+
+    function editMember(index) {
+      const m = members[index];
+      editIndex = index;
+      document.getElementById('name').value = m.name;
+      document.getElementById('birthdate').value = m.birthdate;
+      document.getElementById('phone').value = m.phone;
+      document.getElementById('email').value = m.email;
+      document.getElementById('joinDate').value = m.joinDate;
+      document.getElementById('role').value = m.role;
+      openModal(true);
+    }
+
+    function saveMember() {
+      const member = {
+        name: document.getElementById('name').value.trim(),
+        birthdate: document.getElementById('birthdate').value,
+        phone: document.getElementById('phone').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        joinDate: document.getElementById('joinDate').value,
+        role: document.getElementById('role').value.trim()
+      };
+
+      if (!member.name) {
+        alert("Bitte gib einen Namen ein.");
+        return;
+      }
+
+      if (editIndex !== null) {
+        members[editIndex] = member;
+      } else {
+        members.push(member);
+      }
+
+      renderTable();
+      closeModal();
+    }
+
+    // Klick außerhalb schließt Modal
+    window.onclick = function(event) {
+      if (event.target == document.getElementById('memberModal')) {
+        closeModal();
+      }
+    }
+
+    renderTable();
+  </script>
+</body>
+</html>
