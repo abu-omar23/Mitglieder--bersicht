@@ -37,12 +37,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
       flex-wrap: wrap;
       gap: 0.5rem;
+      margin-bottom: 1rem;
     }
 
-    select {
+    select, input[type="text"] {
       padding: 0.5rem;
       border: 1px solid #ccc;
       border-radius: 6px;
@@ -151,10 +151,6 @@
       margin-bottom: 0.8rem;
     }
 
-    .checkbox-group label {
-      margin: 3px 0;
-    }
-
     .modal-buttons {
       display: flex;
       justify-content: space-between;
@@ -198,6 +194,10 @@
       </div>
     </div>
 
+    <div class="filter-bar" style="margin-bottom:1rem;">
+      <input type="text" id="filterInput" placeholder="Nach Name, Sportart oder Gruppe filtern..." onkeyup="filterMembers()">
+    </div>
+
     <div class="tab-buttons">
       <button id="tabActive" class="active" onclick="showTab('active')">Aktive Mitglieder</button>
       <button id="tabCancelled" onclick="showTab('cancelled')">Gekündigte Mitglieder</button>
@@ -213,10 +213,8 @@
           <th>Telefon</th>
           <th>E-Mail</th>
           <th>Beitritt</th>
-          <th>Boxen</th>
-          <th>Kickboxen</th>
-          <th>Erwachsene</th>
-          <th>Kinder</th>
+          <th>Sportart</th>
+          <th>Gruppe</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -233,6 +231,8 @@
           <th>E-Mail</th>
           <th>Beitritt</th>
           <th>Kündigungsdatum</th>
+          <th>Sportart</th>
+          <th>Gruppe</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -250,14 +250,19 @@
       <input type="email" id="email" placeholder="E-Mail">
       <input type="date" id="joinDate">
 
-      <div class="checkbox-group">
-        <label><input type="checkbox" id="boxing"> Boxen</label>
-        <label><input type="checkbox" id="kickboxing"> Kickboxen</label>
-      </div>
-      <div class="checkbox-group">
-        <label><input type="checkbox" id="adult"> Erwachsene</label>
-        <label><input type="checkbox" id="child"> Kinder</label>
-      </div>
+      <label for="sport">Sportart:</label>
+      <select id="sport">
+        <option value="">Bitte wählen</option>
+        <option value="Boxen">Boxen</option>
+        <option value="Kickboxen">Kickboxen</option>
+      </select>
+
+      <label for="group">Gruppe:</label>
+      <select id="group">
+        <option value="">Bitte wählen</option>
+        <option value="Erwachsene">Erwachsene</option>
+        <option value="Kinder">Kinder</option>
+      </select>
 
       <div class="modal-buttons">
         <button onclick="saveMember()">Speichern</button>
@@ -290,10 +295,8 @@
           <td>${m.phone}</td>
           <td>${m.email}</td>
           <td>${m.joinDate}</td>
-          <td><input type="checkbox" ${m.boxing ? 'checked' : ''} onchange="toggleCheckbox(${i}, 'boxing')"></td>
-          <td><input type="checkbox" ${m.kickboxing ? 'checked' : ''} onchange="toggleCheckbox(${i}, 'kickboxing')"></td>
-          <td><input type="checkbox" ${m.adult ? 'checked' : ''} onchange="toggleCheckbox(${i}, 'adult')"></td>
-          <td><input type="checkbox" ${m.child ? 'checked' : ''} onchange="toggleCheckbox(${i}, 'child')"></td>
+          <td>${m.sport}</td>
+          <td>${m.group}</td>
         `;
         activeBody.appendChild(row);
 
@@ -313,17 +316,14 @@
           <td>${m.email}</td>
           <td>${m.joinDate}</td>
           <td>${m.cancelDate}</td>
+          <td>${m.sport}</td>
+          <td>${m.group}</td>
         `;
         cancelledBody.appendChild(row);
       });
 
       localStorage.setItem('members', JSON.stringify(members));
       localStorage.setItem('cancelled', JSON.stringify(cancelled));
-    }
-
-    function toggleCheckbox(index, field) {
-      members[index][field] = !members[index][field];
-      localStorage.setItem('members', JSON.stringify(members));
     }
 
     function openModal(edit = false) {
@@ -347,25 +347,16 @@
       document.getElementById('phone').value = m.phone;
       document.getElementById('email').value = m.email;
       document.getElementById('joinDate').value = m.joinDate;
-      document.getElementById('boxing').checked = m.boxing;
-      document.getElementById('kickboxing').checked = m.kickboxing;
-      document.getElementById('adult').checked = m.adult;
-      document.getElementById('child').checked = m.child;
+      document.getElementById('sport').value = m.sport;
+      document.getElementById('group').value = m.group;
 
       openModal(true);
     }
 
     function closeModal() {
       document.getElementById('memberModal').style.display = 'none';
-      clearForm();
+      document.querySelectorAll('#memberModal input, #memberModal select').forEach(el => el.value = '');
       editIndex = null;
-    }
-
-    function clearForm() {
-      document.querySelectorAll('#memberModal input').forEach(el => {
-        if (el.type === 'checkbox') el.checked = false;
-        else el.value = '';
-      });
     }
 
     function saveMember() {
@@ -376,10 +367,8 @@
         phone: document.getElementById('phone').value.trim(),
         email: document.getElementById('email').value.trim(),
         joinDate: document.getElementById('joinDate').value,
-        boxing: document.getElementById('boxing').checked,
-        kickboxing: document.getElementById('kickboxing').checked,
-        adult: document.getElementById('adult').checked,
-        child: document.getElementById('child').checked
+        sport: document.getElementById('sport').value,
+        group: document.getElementById('group').value
       };
 
       if (!member.firstName || !member.lastName) {
@@ -420,6 +409,15 @@
         document.getElementById('tabCancelled').classList.add('active');
         document.getElementById('cancelledTable').style.display = 'table';
       }
+    }
+
+    function filterMembers() {
+      const filter = document.getElementById('filterInput').value.toLowerCase();
+      const rows = document.querySelectorAll('#activeTable tbody tr');
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+      });
     }
 
     // Klick außerhalb schließt Modal
