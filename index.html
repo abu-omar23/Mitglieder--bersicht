@@ -20,7 +20,7 @@
     }
 
     main {
-      max-width: 900px;
+      max-width: 1000px;
       margin: 2rem auto;
       background: white;
       padding: 1.5rem;
@@ -29,7 +29,6 @@
     }
 
     h2 {
-      margin-top: 0;
       text-align: center;
       color: #333;
     }
@@ -41,7 +40,7 @@
     }
 
     th, td {
-      padding: 0.8rem;
+      padding: 0.7rem;
       border-bottom: 1px solid #ddd;
       text-align: left;
     }
@@ -93,16 +92,28 @@
       padding: 1.5rem;
       border-radius: 10px;
       width: 90%;
-      max-width: 400px;
+      max-width: 420px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     }
 
-    .modal-content input {
+    .modal-content input[type="text"],
+    .modal-content input[type="email"],
+    .modal-content input[type="date"] {
       width: 100%;
       padding: 0.5rem;
       margin-bottom: 0.8rem;
       border: 1px solid #ccc;
       border-radius: 6px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 0.8rem;
+    }
+
+    .checkbox-group label {
+      margin: 3px 0;
     }
 
     .modal-buttons {
@@ -132,29 +143,41 @@
     <table id="memberTable">
       <thead>
         <tr>
-          <th>Name</th>
+          <th>Vorname</th>
+          <th>Nachname</th>
           <th>Geburtsdatum</th>
           <th>Telefon</th>
           <th>E-Mail</th>
           <th>Beitrittsdatum</th>
-          <th>Rolle</th>
-          <th>Aktionen</th>
+          <th>Boxen</th>
+          <th>Kickboxen</th>
+          <th>Erwachsene</th>
+          <th>Kinder</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
   </main>
 
-  <!-- Bearbeitungs-Modal -->
+  <!-- Pop-up Formular -->
   <div id="memberModal" class="modal">
     <div class="modal-content">
-      <h3 id="modalTitle">Mitglied bearbeiten</h3>
-      <input type="text" id="name" placeholder="Name">
-      <input type="date" id="birthdate" placeholder="Geburtsdatum">
+      <h3 id="modalTitle">Mitglied hinzufügen</h3>
+      <input type="text" id="firstName" placeholder="Vorname">
+      <input type="text" id="lastName" placeholder="Nachname">
+      <input type="date" id="birthdate">
       <input type="text" id="phone" placeholder="Telefonnummer">
       <input type="email" id="email" placeholder="E-Mail">
-      <input type="date" id="joinDate" placeholder="Beitrittsdatum">
-      <input type="text" id="role" placeholder="Rolle im Verein">
+      <input type="date" id="joinDate">
+
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="boxing"> Boxen</label>
+        <label><input type="checkbox" id="kickboxing"> Kickboxen</label>
+      </div>
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="adult"> Erwachsene</label>
+        <label><input type="checkbox" id="child"> Kinder</label>
+      </div>
 
       <div class="modal-buttons">
         <button onclick="saveMember()">Speichern</button>
@@ -171,23 +194,30 @@
       const tbody = document.querySelector('#memberTable tbody');
       tbody.innerHTML = '';
 
-      members.forEach((m, index) => {
+      members.forEach((m, i) => {
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td>${m.name}</td>
+          <td>${m.firstName}</td>
+          <td>${m.lastName}</td>
           <td>${m.birthdate}</td>
           <td>${m.phone}</td>
           <td>${m.email}</td>
           <td>${m.joinDate}</td>
-          <td>${m.role}</td>
-          <td>
-            <button onclick="editMember(${index})">Bearbeiten</button>
-          </td>
+          <td><input type="checkbox" ${m.boxing ? 'checked' : ''} onchange="toggleCheckbox(${i}, 'boxing')"></td>
+          <td><input type="checkbox" ${m.kickboxing ? 'checked' : ''} onchange="toggleCheckbox(${i}, 'kickboxing')"></td>
+          <td><input type="checkbox" ${m.adult ? 'checked' : ''} onchange="toggleCheckbox(${i}, 'adult')"></td>
+          <td><input type="checkbox" ${m.child ? 'checked' : ''} onchange="toggleCheckbox(${i}, 'child')"></td>
         `;
         tbody.appendChild(row);
       });
 
       localStorage.setItem('members', JSON.stringify(members));
+    }
+
+    function toggleCheckbox(index, field) {
+      members[index][field] = !members[index][field];
+      localStorage.setItem('members', JSON.stringify(members));
+      renderTable();
     }
 
     function openModal(edit = false) {
@@ -202,56 +232,46 @@
     }
 
     function clearForm() {
-      document.getElementById('name').value = '';
+      document.getElementById('firstName').value = '';
+      document.getElementById('lastName').value = '';
       document.getElementById('birthdate').value = '';
       document.getElementById('phone').value = '';
       document.getElementById('email').value = '';
       document.getElementById('joinDate').value = '';
-      document.getElementById('role').value = '';
-    }
-
-    function editMember(index) {
-      const m = members[index];
-      editIndex = index;
-      document.getElementById('name').value = m.name;
-      document.getElementById('birthdate').value = m.birthdate;
-      document.getElementById('phone').value = m.phone;
-      document.getElementById('email').value = m.email;
-      document.getElementById('joinDate').value = m.joinDate;
-      document.getElementById('role').value = m.role;
-      openModal(true);
+      document.getElementById('boxing').checked = false;
+      document.getElementById('kickboxing').checked = false;
+      document.getElementById('adult').checked = false;
+      document.getElementById('child').checked = false;
     }
 
     function saveMember() {
       const member = {
-        name: document.getElementById('name').value.trim(),
+        firstName: document.getElementById('firstName').value.trim(),
+        lastName: document.getElementById('lastName').value.trim(),
         birthdate: document.getElementById('birthdate').value,
         phone: document.getElementById('phone').value.trim(),
         email: document.getElementById('email').value.trim(),
         joinDate: document.getElementById('joinDate').value,
-        role: document.getElementById('role').value.trim()
+        boxing: document.getElementById('boxing').checked,
+        kickboxing: document.getElementById('kickboxing').checked,
+        adult: document.getElementById('adult').checked,
+        child: document.getElementById('child').checked
       };
 
-      if (!member.name) {
-        alert("Bitte gib einen Namen ein.");
+      if (!member.firstName || !member.lastName) {
+        alert("Bitte Vor- und Nachname eingeben!");
         return;
       }
 
-      if (editIndex !== null) {
-        members[editIndex] = member;
-      } else {
-        members.push(member);
-      }
-
+      members.push(member);
+      localStorage.setItem('members', JSON.stringify(members));
       renderTable();
       closeModal();
     }
 
     // Klick außerhalb schließt Modal
-    window.onclick = function(event) {
-      if (event.target == document.getElementById('memberModal')) {
-        closeModal();
-      }
+    window.onclick = function(e) {
+      if (e.target === document.getElementById('memberModal')) closeModal();
     }
 
     renderTable();
