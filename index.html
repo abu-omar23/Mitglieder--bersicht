@@ -5,128 +5,222 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vereinsmitglieder Übersicht</title>
 <style>
+  :root {
+    --blue: #0057b7;
+    --blue-dark: #004199;
+    --green: #008c45;
+    --green-dark: #007538;
+    --red: #c0392b;
+    --gray-light: #f2f4f8;
+  }
+
   body {
     font-family: Arial, sans-serif;
-    background: #f2f4f8;
+    background: var(--gray-light);
     margin: 0;
     padding: 0;
   }
+
   header {
-    background: #0057b7;
+    background: var(--blue);
     color: white;
-    padding: 1rem 2rem;
+    padding: 1rem;
     text-align: center;
   }
+
   main {
     max-width: 1100px;
-    margin: 2rem auto;
+    margin: 1rem auto;
     background: white;
-    padding: 1.5rem;
+    padding: 1rem;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
+
   h2 { text-align: center; color: #333; }
 
-  /* Buttons und Filter */
+  /* --- Top-Bar --- */
   .top-bar {
-    display: flex; justify-content: space-between;
-    align-items: center; flex-wrap: wrap;
-    gap: .5rem; margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: 1rem;
   }
+
   button {
-    background: #0057b7; color: white; border: none;
-    padding: .5rem 1rem; border-radius: 6px; cursor: pointer;
+    background: var(--blue);
+    color: white;
+    border: none;
+    padding: .6rem 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
   }
-  button:hover { background: #004199; }
-  .btn-add { background: #008c45; }
-  .btn-add:hover { background: #007538; }
+  button:hover { background: var(--blue-dark); }
+
+  .btn-add { background: var(--green); }
+  .btn-add:hover { background: var(--green-dark); }
 
   .search-icon {
-    background: white; color: #0057b7;
-    border: 2px solid #0057b7;
-    border-radius: 50%; width: 35px; height: 35px;
+    background: white;
+    color: var(--blue);
+    border: 2px solid var(--blue);
+    border-radius: 50%;
+    width: 38px; height: 38px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; font-weight: bold;
   }
-  .search-icon:hover { background: #0057b7; color: white; }
+  .search-icon:hover {
+    background: var(--blue); color: white;
+  }
   #searchField {
     display: none;
-    padding: .5rem; border-radius: 6px; border: 1px solid #ccc;
+    padding: .6rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    width: 180px;
   }
 
+  /* --- Filter Dropdown --- */
   .filter-box {
-    text-align: center; margin-bottom: 1rem;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  .filter-box label {
+    font-weight: bold;
+    margin-right: .5rem;
   }
   select#filterSelect {
-    padding: .4rem .6rem; border-radius: 6px;
-    border: 1px solid #ccc; background: #f9f9f9;
+    padding: .5rem .8rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+    font-size: 1rem;
+  }
+
+  /* --- Table --- */
+  .table-wrapper {
+    width: 100%;
+    overflow-x: auto;
   }
 
   table {
-    width: 100%; border-collapse: collapse;
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
   }
   th, td {
-    padding: .7rem; border-bottom: 1px solid #ddd;
+    padding: .7rem;
+    border-bottom: 1px solid #ddd;
     text-align: left;
+    font-size: .95rem;
   }
   th {
-    background: #f0f0f0; cursor: pointer; user-select: none;
+    background: #f0f0f0;
+    cursor: pointer;
     position: relative;
+    user-select: none;
+    white-space: nowrap;
   }
   th span.arrow {
-    font-size: .8rem; color: #999; margin-left: .3rem;
+    font-size: .8rem;
+    color: #aaa;
+    margin-left: .3rem;
+  }
+  th.active span.arrow {
+    color: var(--blue);
   }
   tr:hover { background: #f9f9f9; }
 
+  /* --- Tabs --- */
   .tab-buttons {
-    display: flex; justify-content: center;
-    gap: 1rem; margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: .5rem;
+    margin-top: .5rem;
+    flex-wrap: wrap;
   }
   .tab-buttons button {
-    background: #ddd; color: black;
+    background: #ddd;
+    color: black;
+    font-size: .95rem;
   }
   .tab-buttons button.active {
-    background: #0057b7; color: white;
+    background: var(--blue);
+    color: white;
   }
 
+  /* --- Info Button --- */
   .info-btn {
-    border: none; background: #0057b7; color: white;
-    border-radius: 50%; width: 28px; height: 28px;
+    border: none;
+    background: var(--blue);
+    color: white;
+    border-radius: 50%;
+    width: 30px; height: 30px;
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-weight: bold;
+    cursor: pointer;
+    font-weight: bold;
   }
-  .info-btn:hover { background: #004199; }
+  .info-btn:hover { background: var(--blue-dark); }
 
-  /* Modal */
+  /* --- Modals --- */
   .modal {
-    display: none; position: fixed; z-index: 10;
-    left: 0; top: 0; width: 100%; height: 100%;
+    display: none;
+    position: fixed;
+    z-index: 10;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
     background: rgba(0,0,0,0.5);
-    justify-content: center; align-items: center;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
   }
   .modal-content {
-    background: white; padding: 1.5rem; border-radius: 10px;
-    width: 90%; max-width: 420px;
+    background: white;
+    padding: 1.2rem;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 420px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
   }
   .modal-content input, .modal-content select {
-    width: 100%; padding: .5rem; margin-bottom: .8rem;
-    border: 1px solid #ccc; border-radius: 6px;
+    width: 100%;
+    padding: .5rem;
+    margin-bottom: .8rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
   }
   .modal-buttons {
-    display: flex; justify-content: space-between;
-    flex-wrap: wrap; gap: .5rem;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem;
   }
   .cancel { background: #888; }
   .cancel:hover { background: #666; }
-  .btn-remove { background: #c0392b; }
-  .btn-remove:hover { background: #a93226; }
+  .btn-remove { background: var(--red); }
   .btn-warning { background: #ffa500; }
   .btn-warning:hover { background: #e59500; }
 
   .confirm-area {
-    background: #f2f2f2; border-radius: 8px;
-    padding: .7rem; margin-top: .7rem;
+    background: #f2f2f2;
+    border-radius: 8px;
+    padding: .7rem;
+    margin-top: .7rem;
+  }
+
+  /* --- Responsive --- */
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.3rem; }
+    h2 { font-size: 1.1rem; }
+    button { font-size: .9rem; padding: .5rem .9rem; }
+    .btn-add { width: 100%; }
+    .filter-box select { width: 100%; margin-top: .5rem; }
+    #searchField { width: 100%; }
+    .modal-content { padding: 1rem; font-size: .95rem; }
   }
 </style>
 </head>
@@ -144,7 +238,7 @@
   </div>
 
   <div class="filter-box">
-    <label for="filterSelect">Filtern nach: </label>
+    <label for="filterSelect">Filtern nach:</label>
     <select id="filterSelect" onchange="filterMembers(this.value)">
       <option value="alle">Alle</option>
       <option value="Boxen">Boxen</option>
@@ -155,41 +249,37 @@
   </div>
 
   <div class="tab-buttons">
-    <button id="tabActive" class="active" onclick="showTab('active')">Aktive Mitglieder</button>
-    <button id="tabCancelled" onclick="showTab('cancelled')">Gekündigte Mitglieder</button>
+    <button id="tabActive" class="active" onclick="showTab('active')">Aktive</button>
+    <button id="tabCancelled" onclick="showTab('cancelled')">Gekündigte</button>
   </div>
 
-  <table id="activeTable">
-    <thead>
-      <tr>
-        <th onclick="sortTable('firstName')">Vorname<span class="arrow" id="arrow-firstName">▲</span></th>
-        <th onclick="sortTable('lastName')">Nachname<span class="arrow" id="arrow-lastName">▼</span></th>
-        <th onclick="sortTable('gender')">Geschlecht<span class="arrow" id="arrow-gender">▼</span></th>
-        <th onclick="sortTable('birthdate')">Geburtsdatum<span class="arrow" id="arrow-birthdate">▼</span></th>
-        <th onclick="sortTable('phone')">Telefon<span class="arrow" id="arrow-phone">▼</span></th>
-        <th onclick="sortTable('email')">E-Mail<span class="arrow" id="arrow-email">▼</span></th>
-        <th onclick="sortTable('joinDate')">Beitritt<span class="arrow" id="arrow-joinDate">▼</span></th>
-        <th onclick="sortTable('sport')">Sportart<span class="arrow" id="arrow-sport">▼</span></th>
-        <th onclick="sortTable('group')">Gruppe<span class="arrow" id="arrow-group">▼</span></th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div class="table-wrapper">
+    <table id="activeTable">
+      <thead>
+        <tr>
+          <th onclick="sortTable('firstName')">Vorname<span class="arrow" id="arrow-firstName">▲</span></th>
+          <th onclick="sortTable('lastName')">Nachname<span class="arrow" id="arrow-lastName">▼</span></th>
+          <th onclick="sortTable('gender')">Geschlecht<span class="arrow" id="arrow-gender">▼</span></th>
+          <th onclick="sortTable('birthdate')">Geburtsdatum<span class="arrow" id="arrow-birthdate">▼</span></th>
+          <th>Telefon</th><th>E-Mail</th><th>Beitritt</th><th>Sportart</th><th>Gruppe</th><th></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-  <table id="cancelledTable" style="display:none;">
-    <thead>
-      <tr>
-        <th>Vorname</th><th>Nachname</th><th>Geschlecht</th>
-        <th>Geburtsdatum</th><th>Telefon</th><th>E-Mail</th>
-        <th>Beitritt</th><th>Kündigungsdatum</th><th>Sportart</th><th>Gruppe</th><th></th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    <table id="cancelledTable" style="display:none;">
+      <thead>
+        <tr>
+          <th>Vorname</th><th>Nachname</th><th>Geschlecht</th><th>Geburtsdatum</th>
+          <th>Telefon</th><th>E-Mail</th><th>Beitritt</th><th>Kündigung</th><th>Sportart</th><th>Gruppe</th><th></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 </main>
 
-<!-- Modals -->
+<!-- Modal: Mitglied -->
 <div id="memberModal" class="modal">
   <div class="modal-content">
     <h3 id="modalTitle">Mitglied hinzufügen</h3>
@@ -212,6 +302,7 @@
   </div>
 </div>
 
+<!-- Modal: Info -->
 <div id="infoModal" class="modal">
   <div class="modal-content">
     <h3>Mitgliedsinfo</h3>
@@ -250,12 +341,11 @@ function renderTables(){
 }
 function sortTable(k){
  if(sortKey===k)sortAsc=!sortAsc;else{sortKey=k;sortAsc=true;}
- document.querySelectorAll('th span.arrow').forEach(a=>a.style.color='#999');
- document.getElementById('arrow-'+k).style.color='#0057b7';
+ document.querySelectorAll('th').forEach(th=>th.classList.remove('active'));
+ document.getElementById('arrow-'+k).parentElement.classList.add('active');
  renderTables();
 }
-function openAddModal(){currentIndex=null;
- document.getElementById('modalTitle').textContent='Neues Mitglied hinzufügen';
+function openAddModal(){currentIndex=null;document.getElementById('modalTitle').textContent='Neues Mitglied hinzufügen';
  document.querySelectorAll('#memberModal input,#memberModal select').forEach(e=>e.value='');
  document.getElementById('memberModal').style.display='flex';
 }
@@ -278,7 +368,7 @@ function openInfo(i){
 }
 function openInfoCancelled(i){
  const m=cancelled[i];const age=calcAge(m.birthdate);
- infoText.innerHTML=`<strong>${m.firstName} ${m.lastName}</strong><br>Geschlecht: ${m.gender}<br>Alter: ${age} Jahre<br>Kündigungsdatum: ${formatDate(m.cancelDate)}<br>Sportart: ${m.sport}<br>Gruppe: ${m.group}<br>E-Mail: ${m.email}<br>Telefon: ${m.phone}`;
+ infoText.innerHTML=`<strong>${m.firstName} ${m.lastName}</strong><br>Geschlecht: ${m.gender}<br>Alter: ${age} Jahre<br>Kündigung: ${formatDate(m.cancelDate)}<br>Sportart: ${m.sport}<br>Gruppe: ${m.group}<br>E-Mail: ${m.email}<br>Telefon: ${m.phone}`;
  confirmArea.style.display='none';
  infoModal.style.display='flex';
  document.querySelectorAll('#infoModal .btn-warning,.btn-remove').forEach(b=>b.style.display='none');
