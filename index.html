@@ -1,530 +1,349 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Vereinsmitglieder Übersicht</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f4f8;
-      margin: 0;
-      padding: 0;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vereinsmitglieder Übersicht</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f2f4f8;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    background: #0057b7;
+    color: white;
+    padding: 1rem 2rem;
+    text-align: center;
+  }
+  main {
+    max-width: 1100px;
+    margin: 2rem auto;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  h2 {
+    text-align: center;
+    color: #333;
+  }
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: 1rem;
+  }
+  button {
+    background: #0057b7;
+    color: white;
+    border: none;
+    padding: .5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button:hover { background: #004199; }
+  .btn-add { background: #008c45; }
+  .btn-add:hover { background: #007538; }
 
-    header {
-      background: #0057b7;
-      color: white;
-      padding: 1rem 2rem;
-      text-align: center;
-    }
+  .search-icon {
+    background: white;
+    color: #0057b7;
+    border: 2px solid #0057b7;
+    border-radius: 50%;
+    width: 35px; height: 35px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .search-icon:hover {
+    background: #0057b7;
+    color: white;
+  }
+  #searchField {
+    display: none;
+    padding: .5rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
 
-    main {
-      max-width: 1100px;
-      margin: 2rem auto;
-      background: white;
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
+  .filter-buttons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: 1rem;
+  }
+  .filter-buttons button {
+    background: #e8e8e8;
+    color: #333;
+    border-radius: 20px;
+    padding: .4rem .9rem;
+    border: 1px solid #ccc;
+    font-size: .9rem;
+  }
+  .filter-buttons button.active {
+    background: #0057b7;
+    color: white;
+    border-color: #0057b7;
+  }
 
-    h2 {
-      text-align: center;
-      color: #333;
-    }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: .7rem;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+  }
+  th {
+    background: #f0f0f0;
+    cursor: pointer;
+    user-select: none;
+  }
+  th span {
+    margin-left: .4rem;
+    font-size: .8rem;
+    color: #555;
+  }
+  tr:hover { background: #f9f9f9; }
 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
+  .tab-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .tab-buttons button {
+    background: #ddd;
+    color: black;
+  }
+  .tab-buttons button.active {
+    background: #0057b7;
+    color: white;
+  }
 
-    button {
-      background: #0057b7;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+  .info-btn {
+    border: none;
+    background: #0057b7;
+    color: white;
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .info-btn:hover { background: #004199; }
 
-    button:hover {
-      background: #004199;
-    }
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 10;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-content {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+  .modal-content input, .modal-content select {
+    width: 100%;
+    padding: .5rem;
+    margin-bottom: .8rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  .modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+  .cancel { background: #888; }
+  .cancel:hover { background: #666; }
+  .btn-remove { background: #c0392b; }
+  .btn-remove:hover { background: #a93226; }
+  .btn-warning { background: #ffa500; }
+  .btn-warning:hover { background: #e59500; }
 
-    .btn-add {
-      background: #008c45;
-    }
+  .confirm-area {
+    background: #f2f2f2;
+    border-radius: 8px;
+    padding: .7rem;
+    margin-top: .7rem;
+  }
 
-    .btn-add:hover {
-      background: #007538;
-    }
-
-    .search-icon {
-      background: white;
-      color: #0057b7;
-      border: 2px solid #0057b7;
-      border-radius: 50%;
-      font-weight: bold;
-      width: 35px;
-      height: 35px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-
-    .search-icon:hover {
-      background: #0057b7;
-      color: white;
-    }
-
-    #searchField {
-      display: none;
-      padding: 0.5rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    .filter-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      justify-content: center;
-      margin-bottom: 1rem;
-    }
-
-    .filter-buttons button {
-      background: #ddd;
-      color: black;
-    }
-
-    .filter-buttons button.active {
-      background: #0057b7;
-      color: white;
-    }
-
-    .tab-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-
-    .tab-buttons button {
-      background: #ddd;
-      color: black;
-    }
-
-    .tab-buttons button.active {
-      background: #0057b7;
-      color: white;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-
-    th, td {
-      padding: 0.7rem;
-      border-bottom: 1px solid #ddd;
-      text-align: left;
-    }
-
-    th {
-      background: #f0f0f0;
-    }
-
-    tr:hover {
-      background: #f9f9f9;
-    }
-
-    .info-btn {
-      background: #0057b7;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      cursor: pointer;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 10;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-    }
-
-    .modal-content {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 420px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    }
-
-    .modal-content input, .modal-content select {
-      width: 100%;
-      padding: 0.5rem;
-      margin-bottom: 0.8rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-
-    .modal-buttons {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .cancel {
-      background: #888;
-    }
-
-    .cancel:hover {
-      background: #666;
-    }
-
-    .btn-remove {
-      background: #c0392b;
-    }
-
-    .btn-remove:hover {
-      background: #a93226;
-    }
-
-    .btn-warning {
-      background: #ffa500;
-    }
-
-    .btn-warning:hover {
-      background: #e59500;
-    }
-
-    .info-text {
-      margin-bottom: 1rem;
-      line-height: 1.4;
-    }
-  </style>
+</style>
 </head>
 <body>
-  <header>
-    <h1>Vereinsmitglieder Übersicht</h1>
-  </header>
+<header><h1>Vereinsmitglieder Übersicht</h1></header>
+<main>
+  <h2>Mitgliederverwaltung</h2>
 
-  <main>
-    <h2>Mitgliederverwaltung</h2>
-
-    <div class="top-bar">
-      <button class="btn-add" onclick="openAddModal()">+ Neues Mitglied</button>
-      <div style="display:flex;align-items:center;gap:0.5rem;">
-        <div class="search-icon" onclick="toggleSearch()">🔍</div>
-        <input type="text" id="searchField" placeholder="Nach Name suchen..." onkeyup="searchMembers()">
-      </div>
-    </div>
-
-    <div class="filter-buttons">
-      <button class="active" onclick="filterMembers('alle')">Alle</button>
-      <button onclick="filterMembers('Boxen')">Boxen</button>
-      <button onclick="filterMembers('Kickboxen')">Kickboxen</button>
-      <button onclick="filterMembers('Kinder')">Kinder</button>
-      <button onclick="filterMembers('Erwachsene')">Erwachsene</button>
-    </div>
-
-    <div class="tab-buttons">
-      <button id="tabActive" class="active" onclick="showTab('active')">Aktive Mitglieder</button>
-      <button id="tabCancelled" onclick="showTab('cancelled')">Gekündigte Mitglieder</button>
-    </div>
-
-    <!-- Aktive Mitglieder -->
-    <table id="activeTable">
-      <thead>
-        <tr>
-          <th>Vorname</th>
-          <th>Nachname</th>
-          <th>Geburtsdatum</th>
-          <th>Telefon</th>
-          <th>E-Mail</th>
-          <th>Beitritt</th>
-          <th>Sportart</th>
-          <th>Gruppe</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <!-- Gekündigte Mitglieder -->
-    <table id="cancelledTable" style="display:none;">
-      <thead>
-        <tr>
-          <th>Vorname</th>
-          <th>Nachname</th>
-          <th>Geburtsdatum</th>
-          <th>Telefon</th>
-          <th>E-Mail</th>
-          <th>Beitritt</th>
-          <th>Kündigungsdatum</th>
-          <th>Sportart</th>
-          <th>Gruppe</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </main>
-
-  <!-- Modal: Neues / Bearbeiten -->
-  <div id="memberModal" class="modal">
-    <div class="modal-content">
-      <h3 id="modalTitle">Mitglied hinzufügen</h3>
-      <label>Vorname:</label>
-      <input type="text" id="firstName">
-      <label>Nachname:</label>
-      <input type="text" id="lastName">
-      <label>Geburtsdatum:</label>
-      <input type="date" id="birthdate">
-      <label>Beitrittsdatum:</label>
-      <input type="date" id="joinDate">
-      <label>Telefon:</label>
-      <input type="text" id="phone">
-      <label>E-Mail:</label>
-      <input type="email" id="email">
-      <label>Sportart:</label>
-      <select id="sport">
-        <option value="">Bitte wählen</option>
-        <option value="Boxen">Boxen</option>
-        <option value="Kickboxen">Kickboxen</option>
-      </select>
-      <label>Gruppe:</label>
-      <select id="group">
-        <option value="">Bitte wählen</option>
-        <option value="Kinder">Kinder</option>
-        <option value="Erwachsene">Erwachsene</option>
-      </select>
-      <div class="modal-buttons">
-        <button onclick="saveMember()">Speichern</button>
-        <button class="cancel" onclick="closeModal()">Abbrechen</button>
-      </div>
+  <div class="top-bar">
+    <button class="btn-add" onclick="openAddModal()">+ Neues Mitglied</button>
+    <div style="display:flex;align-items:center;gap:.5rem;">
+      <div class="search-icon" onclick="toggleSearch()">🔍</div>
+      <input type="text" id="searchField" placeholder="Nach Name suchen..." onkeyup="searchMembers()">
     </div>
   </div>
 
-  <!-- Modal: Info -->
-  <div id="infoModal" class="modal">
-    <div class="modal-content">
-      <h3>Mitgliedsinfo</h3>
-      <div id="infoText" class="info-text"></div>
-      <div class="modal-buttons">
-        <button class="btn-warning" onclick="openEditFromInfo()">Bearbeiten</button>
-        <button class="btn-remove" onclick="confirmCancel()">Kündigen</button>
-        <button class="btn-remove" onclick="confirmDelete()">Löschen</button>
-        <button class="cancel" onclick="closeInfo()">Schließen</button>
-      </div>
-    </div>
+  <div class="filter-buttons">
+    <button class="active" onclick="filterMembers('alle')">Alle</button>
+    <button onclick="filterMembers('Boxen')">Boxen</button>
+    <button onclick="filterMembers('Kickboxen')">Kickboxen</button>
+    <button onclick="filterMembers('Kinder')">Kinder</button>
+    <button onclick="filterMembers('Erwachsene')">Erwachsene</button>
   </div>
 
-  <script>
-    let members = JSON.parse(localStorage.getItem('members')) || [];
-    let cancelled = JSON.parse(localStorage.getItem('cancelled')) || [];
-    let currentIndex = null;
-    let filter = 'alle';
+  <div class="tab-buttons">
+    <button id="tabActive" class="active" onclick="showTab('active')">Aktive Mitglieder</button>
+    <button id="tabCancelled" onclick="showTab('cancelled')">Gekündigte Mitglieder</button>
+  </div>
 
-    function formatDate(dateStr) {
-      if (!dateStr) return '';
-      const d = new Date(dateStr);
-      return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
-    }
+  <table id="activeTable">
+    <thead>
+      <tr>
+        <th onclick="sortTable('firstName')">Vorname<span id="arrow-firstName">▲</span></th>
+        <th onclick="sortTable('lastName')">Nachname<span id="arrow-lastName"></span></th>
+        <th onclick="sortTable('birthdate')">Geburtsdatum<span id="arrow-birthdate"></span></th>
+        <th onclick="sortTable('phone')">Telefon<span id="arrow-phone"></span></th>
+        <th onclick="sortTable('email')">E-Mail<span id="arrow-email"></span></th>
+        <th onclick="sortTable('joinDate')">Beitritt<span id="arrow-joinDate"></span></th>
+        <th onclick="sortTable('sport')">Sportart<span id="arrow-sport"></span></th>
+        <th onclick="sortTable('group')">Gruppe<span id="arrow-group"></span></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-    function calcAge(birth) {
-      const b = new Date(birth);
-      const diff = Date.now() - b.getTime();
-      const age = new Date(diff).getUTCFullYear() - 1970;
-      return age;
-    }
+  <table id="cancelledTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>Vorname</th><th>Nachname</th><th>Geburtsdatum</th>
+        <th>Telefon</th><th>E-Mail</th><th>Beitritt</th>
+        <th>Kündigungsdatum</th><th>Sportart</th><th>Gruppe</th><th></th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</main>
 
-    function renderTables() {
-      const activeBody = document.querySelector('#activeTable tbody');
-      const cancelledBody = document.querySelector('#cancelledTable tbody');
-      activeBody.innerHTML = '';
-      cancelledBody.innerHTML = '';
+<!-- Modals -->
+<div id="memberModal" class="modal">
+  <div class="modal-content">
+    <h3 id="modalTitle">Mitglied hinzufügen</h3>
+    <label>Vorname:</label><input id="firstName">
+    <label>Nachname:</label><input id="lastName">
+    <label>Geburtsdatum:</label><input type="date" id="birthdate">
+    <label>Beitrittsdatum:</label><input type="date" id="joinDate">
+    <label>Telefon:</label><input id="phone">
+    <label>E-Mail:</label><input type="email" id="email">
+    <label>Sportart:</label>
+    <select id="sport"><option value="">Bitte wählen</option><option>Boxen</option><option>Kickboxen</option></select>
+    <label>Gruppe:</label>
+    <select id="group"><option value="">Bitte wählen</option><option>Kinder</option><option>Erwachsene</option></select>
+    <div class="modal-buttons">
+      <button onclick="saveMember()">Speichern</button>
+      <button class="cancel" onclick="closeModal()">Abbrechen</button>
+    </div>
+  </div>
+</div>
 
-      members.forEach((m, i) => {
-        if (filter !== 'alle' && m.sport !== filter && m.group !== filter) return;
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${m.firstName}</td>
-          <td>${m.lastName}</td>
-          <td>${formatDate(m.birthdate)}</td>
-          <td>${m.phone}</td>
-          <td>${m.email}</td>
-          <td>${formatDate(m.joinDate)}</td>
-          <td>${m.sport}</td>
-          <td>${m.group}</td>
-          <td><button class="info-btn" onclick="openInfo(${i})">i</button></td>
-        `;
-        activeBody.appendChild(row);
-      });
+<div id="infoModal" class="modal">
+  <div class="modal-content">
+    <h3>Mitgliedsinfo</h3>
+    <div id="infoText" class="info-text"></div>
+    <div id="confirmArea" class="confirm-area" style="display:none;"></div>
+    <div class="modal-buttons">
+      <button class="btn-warning" onclick="openEditFromInfo()">Bearbeiten</button>
+      <button class="btn-remove" onclick="askConfirm('cancel')">Kündigen</button>
+      <button class="btn-remove" onclick="askConfirm('delete')">Löschen</button>
+      <button class="cancel" onclick="closeInfo()">Schließen</button>
+    </div>
+  </div>
+</div>
 
-      cancelled.forEach(m => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${m.firstName}</td>
-          <td>${m.lastName}</td>
-          <td>${formatDate(m.birthdate)}</td>
-          <td>${m.phone}</td>
-          <td>${m.email}</td>
-          <td>${formatDate(m.joinDate)}</td>
-          <td>${formatDate(m.cancelDate)}</td>
-          <td>${m.sport}</td>
-          <td>${m.group}</td>
-        `;
-        cancelledBody.appendChild(row);
-      });
-
-      localStorage.setItem('members', JSON.stringify(members));
-      localStorage.setItem('cancelled', JSON.stringify(cancelled));
-    }
-
-    function openAddModal() {
-      currentIndex = null;
-      document.getElementById('modalTitle').textContent = 'Neues Mitglied hinzufügen';
-      document.querySelectorAll('#memberModal input, #memberModal select').forEach(el => el.value = '');
-      document.getElementById('memberModal').style.display = 'flex';
-    }
-
-    function openEditFromInfo() {
-      closeInfo();
-      const m = members[currentIndex];
-      document.getElementById('modalTitle').textContent = 'Mitglied bearbeiten';
-      document.getElementById('firstName').value = m.firstName;
-      document.getElementById('lastName').value = m.lastName;
-      document.getElementById('birthdate').value = m.birthdate;
-      document.getElementById('joinDate').value = m.joinDate;
-      document.getElementById('phone').value = m.phone;
-      document.getElementById('email').value = m.email;
-      document.getElementById('sport').value = m.sport;
-      document.getElementById('group').value = m.group;
-      document.getElementById('memberModal').style.display = 'flex';
-    }
-
-    function saveMember() {
-      const m = {
-        firstName: document.getElementById('firstName').value.trim(),
-        lastName: document.getElementById('lastName').value.trim(),
-        birthdate: document.getElementById('birthdate').value,
-        joinDate: document.getElementById('joinDate').value,
-        phone: document.getElementById('phone').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        sport: document.getElementById('sport').value,
-        group: document.getElementById('group').value
-      };
-      if (!m.firstName || !m.lastName) {
-        alert('Bitte Vor- und Nachname eingeben!');
-        return;
-      }
-      if (currentIndex !== null) members[currentIndex] = m;
-      else members.push(m);
-      renderTables();
-      closeModal();
-    }
-
-    function openInfo(index) {
-      currentIndex = index;
-      const m = members[index];
-      const age = calcAge(m.birthdate);
-      document.getElementById('infoText').innerHTML = `
-        <strong>${m.firstName} ${m.lastName}</strong><br>
-        Alter: ${age} Jahre<br>
-        Sportart: ${m.sport}<br>
-        Gruppe: ${m.group}<br>
-        E-Mail: ${m.email}<br>
-        Telefon: ${m.phone}
-      `;
-      document.getElementById('infoModal').style.display = 'flex';
-    }
-
-    function confirmCancel() {
-      if (confirm('Willst du dieses Mitglied wirklich kündigen?')) {
-        const m = members[currentIndex];
-        m.cancelDate = new Date().toISOString();
-        cancelled.push(m);
-        members.splice(currentIndex, 1);
-        renderTables();
-        closeInfo();
-      }
-    }
-
-    function confirmDelete() {
-      if (confirm('Willst du dieses Mitglied wirklich löschen?')) {
-        members.splice(currentIndex, 1);
-        renderTables();
-        closeInfo();
-      }
-    }
-
-    function closeModal() {
-      document.getElementById('memberModal').style.display = 'none';
-    }
-
-    function closeInfo() {
-      document.getElementById('infoModal').style.display = 'none';
-    }
-
-    function showTab(tab) {
-      document.getElementById('tabActive').classList.remove('active');
-      document.getElementById('tabCancelled').classList.remove('active');
-      document.getElementById('activeTable').style.display = 'none';
-      document.getElementById('cancelledTable').style.display = 'none';
-      if (tab === 'active') {
-        document.getElementById('tabActive').classList.add('active');
-        document.getElementById('activeTable').style.display = 'table';
-      } else {
-        document.getElementById('tabCancelled').classList.add('active');
-        document.getElementById('cancelledTable').style.display = 'table';
-      }
-    }
-
-    function toggleSearch() {
-      const s = document.getElementById('searchField');
-      s.style.display = s.style.display === 'none' ? 'block' : 'none';
-      s.value = '';
-      searchMembers();
-    }
-
-    function searchMembers() {
-      const search = document.getElementById('searchField').value.toLowerCase();
-      const rows = document.querySelectorAll('#activeTable tbody tr');
-      rows.forEach(row => {
-        row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
-      });
-    }
-
-    function filterMembers(f) {
-      document.querySelectorAll('.filter-buttons button').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
-      filter = f;
-      renderTables();
-    }
-
-    window.onclick = function(e) {
-      if (e.target.classList.contains('modal')) {
-        closeModal();
-        closeInfo();
-      }
-    }
-
-    renderTables();
-  </script>
+<script>
+let members=JSON.parse(localStorage.getItem('members'))||[];
+let cancelled=JSON.parse(localStorage.getItem('cancelled'))||[];
+let currentIndex=null,sortKey='firstName',sortAsc=true,filter='alle';
+function formatDate(d){if(!d)return'';d=new Date(d);return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;}
+function calcAge(b){const birth=new Date(b);return new Date(Date.now()-birth.getTime()).getUTCFullYear()-1970;}
+function renderTables(){
+ const bodyA=document.querySelector('#activeTable tbody'),bodyC=document.querySelector('#cancelledTable tbody');
+ bodyA.innerHTML='';bodyC.innerHTML='';
+ let list=[...members];
+ list.sort((a,b)=>a[sortKey]?.localeCompare(b[sortKey]||'','de',{numeric:true})*(sortAsc?1:-1));
+ list.forEach((m,i)=>{
+   if(filter!=='alle'&&m.sport!==filter&&m.group!==filter)return;
+   bodyA.innerHTML+=`<tr><td>${m.firstName}</td><td>${m.lastName}</td><td>${formatDate(m.birthdate)}</td><td>${m.phone}</td><td>${m.email}</td><td>${formatDate(m.joinDate)}</td><td>${m.sport}</td><td>${m.group}</td><td><button class="info-btn" onclick="openInfo(${i})">i</button></td></tr>`;
+ });
+ cancelled.forEach((m,i)=>{
+   bodyC.innerHTML+=`<tr><td>${m.firstName}</td><td>${m.lastName}</td><td>${formatDate(m.birthdate)}</td><td>${m.phone}</td><td>${m.email}</td><td>${formatDate(m.joinDate)}</td><td>${formatDate(m.cancelDate)}</td><td>${m.sport}</td><td>${m.group}</td><td><button class="info-btn" onclick="openInfoCancelled(${i})">i</button></td></tr>`;
+ });
+ localStorage.setItem('members',JSON.stringify(members));
+ localStorage.setItem('cancelled',JSON.stringify(cancelled));
+}
+function sortTable(k){if(sortKey===k)sortAsc=!sortAsc;else{sortKey=k;sortAsc=true;}
+ document.querySelectorAll('th span').forEach(s=>s.textContent='');
+ document.getElementById('arrow-'+k).textContent=sortAsc?'▲':'▼';
+ renderTables();
+}
+function openAddModal(){currentIndex=null;document.getElementById('modalTitle').textContent='Neues Mitglied hinzufügen';
+ document.querySelectorAll('#memberModal input,#memberModal select').forEach(e=>e.value='');
+ document.getElementById('memberModal').style.display='flex';}
+function saveMember(){
+ const m={firstName:firstName.value.trim(),lastName:lastName.value.trim(),birthdate:birthdate.value,joinDate:joinDate.value,phone:phone.value.trim(),email:email.value.trim(),sport:sport.value,group:group.value};
+ if(!m.firstName||!m.lastName)return alert('Vor- und Nachname erforderlich');
+ if(currentIndex!=null)members[currentIndex]=m;else members.push(m);
+ renderTables();closeModal();
+}
+function openEditFromInfo(){closeInfo();const m=members[currentIndex];
+ modalTitle.textContent='Mitglied bearbeiten';
+ firstName.value=m.firstName;lastName.value=m.lastName;birthdate.value=m.birthdate;joinDate.value=m.joinDate;phone.value=m.phone;email.value=m.email;sport.value=m.sport;group.value=m.group;
+ memberModal.style.display='flex';
+}
+function openInfo(i){currentIndex=i;const m=members[i];const age=calcAge(m.birthdate);
+ infoText.innerHTML=`<strong>${m.firstName} ${m.lastName}</strong><br>Alter: ${age} Jahre<br>Sportart: ${m.sport}<br>Gruppe: ${m.group}<br>E-Mail: ${m.email}<br>Telefon: ${m.phone}`;
+ document.getElementById('confirmArea').style.display='none';
+ infoModal.style.display='flex';
+}
+function openInfoCancelled(i){const m=cancelled[i];const age=calcAge(m.birthdate);
+ infoText.innerHTML=`<strong>${m.firstName} ${m.lastName}</strong><br>Alter: ${age} Jahre<br>Kündigungsdatum: ${formatDate(m.cancelDate)}<br>Sportart: ${m.sport}<br>Gruppe: ${m.group}<br>E-Mail: ${m.email}<br>Telefon: ${m.phone}`;
+ document.getElementById('confirmArea').style.display='none';
+ infoModal.style.display='flex';
+ document.querySelectorAll('#infoModal .btn-warning,.btn-remove').forEach(b=>b.style.display='none');
+}
+function askConfirm(action){
+ const area=document.getElementById('confirmArea');
+ area.style.display='block';
+ area.innerHTML=`<p>Sicher, dass du dieses Mitglied ${action==='cancel'?'kündigen':'löschen'} willst?</p><div style="display:flex;gap:.5rem;"><button class="btn-remove" onclick="${action==='cancel'?'doCancel()':'doDelete()'}">Ja</button><button class="cancel" onclick="cancelConfirm()">Nein</button></div>`;
+}
+function cancelConfirm(){document.getElementById('confirmArea').style.display='none';}
+function doCancel(){const m=members[currentIndex];m.cancelDate=new Date().toISOString();cancelled.push(m);members.splice(currentIndex,1);renderTables();closeInfo();}
+function doDelete(){members.splice(currentIndex,1);renderTables();closeInfo();}
+function closeModal(){memberModal.style.display='none';}
+function closeInfo(){infoModal.style.display='none';}
+function showTab(t){tabActive.classList.remove('active');tabCancelled.classList.remove('active');activeTable.style.display='none';cancelledTable.style.display='none';
+ if(t==='active'){tabActive.classList.add('active');activeTable.style.display='table';}else{tabCancelled.classList.add('active');cancelledTable.style.display='table';}}
+function filterMembers(f){document.querySelectorAll('.filter-buttons button').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');filter=f;renderTables();}
+function toggleSearch(){const s=searchField;s.style.display=s.style.display==='none'?'block':'none';s.value='';searchMembers();}
+function searchMembers(){const q=searchField.value.toLowerCase();document.querySelectorAll('#activeTable tbody tr').forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q)?'':'none';});}
+window.onclick=e=>{if(e.target.classList.contains('modal')){closeModal();closeInfo();}}
+renderTables();
+</script>
 </body>
 </html>
