@@ -33,6 +33,67 @@
       color: #333;
     }
 
+    .top-buttons {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    select {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      background: #0057b7;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #004199;
+    }
+
+    .btn-add {
+      background: #008c45;
+    }
+
+    .btn-add:hover {
+      background: #007538;
+    }
+
+    .btn-edit {
+      background: #ffa500;
+    }
+
+    .btn-edit:hover {
+      background: #e59500;
+    }
+
+    .tab-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .tab-buttons button {
+      background: #ddd;
+      color: black;
+    }
+
+    .tab-buttons button.active {
+      background: #0057b7;
+      color: white;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -53,29 +114,7 @@
       background: #f9f9f9;
     }
 
-    button {
-      background: #0057b7;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #004199;
-    }
-
-    .btn-add {
-      margin-bottom: 1rem;
-      background: #008c45;
-    }
-
-    .btn-add:hover {
-      background: #007538;
-    }
-
-    /* Pop-up Formular */
+    /* Modal */
     .modal {
       display: none;
       position: fixed;
@@ -119,7 +158,9 @@
     .modal-buttons {
       display: flex;
       justify-content: space-between;
+      flex-wrap: wrap;
       margin-top: 1rem;
+      gap: 0.5rem;
     }
 
     .cancel {
@@ -129,6 +170,14 @@
     .cancel:hover {
       background: #666;
     }
+
+    .btn-remove {
+      background: #c0392b;
+    }
+
+    .btn-remove:hover {
+      background: #a93226;
+    }
   </style>
 </head>
 <body>
@@ -137,10 +186,25 @@
   </header>
 
   <main>
-    <h2>Mitgliederliste</h2>
-    <button class="btn-add" onclick="openModal()">+ Neues Mitglied</button>
+    <h2>Mitgliederverwaltung</h2>
 
-    <table id="memberTable">
+    <div class="top-buttons">
+      <button class="btn-add" onclick="openModal()">+ Neues Mitglied</button>
+      <div>
+        <select id="editSelect">
+          <option value="">Mitglied auswählen...</option>
+        </select>
+        <button class="btn-edit" onclick="openEditModal()">Bearbeiten</button>
+      </div>
+    </div>
+
+    <div class="tab-buttons">
+      <button id="tabActive" class="active" onclick="showTab('active')">Aktive Mitglieder</button>
+      <button id="tabCancelled" onclick="showTab('cancelled')">Gekündigte Mitglieder</button>
+    </div>
+
+    <!-- Aktive Mitglieder -->
+    <table id="activeTable">
       <thead>
         <tr>
           <th>Vorname</th>
@@ -148,7 +212,7 @@
           <th>Geburtsdatum</th>
           <th>Telefon</th>
           <th>E-Mail</th>
-          <th>Beitrittsdatum</th>
+          <th>Beitritt</th>
           <th>Boxen</th>
           <th>Kickboxen</th>
           <th>Erwachsene</th>
@@ -157,9 +221,25 @@
       </thead>
       <tbody></tbody>
     </table>
+
+    <!-- Gekündigte Mitglieder -->
+    <table id="cancelledTable" style="display:none;">
+      <thead>
+        <tr>
+          <th>Vorname</th>
+          <th>Nachname</th>
+          <th>Geburtsdatum</th>
+          <th>Telefon</th>
+          <th>E-Mail</th>
+          <th>Beitritt</th>
+          <th>Kündigungsdatum</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </main>
 
-  <!-- Pop-up Formular -->
+  <!-- Modal -->
   <div id="memberModal" class="modal">
     <div class="modal-content">
       <h3 id="modalTitle">Mitglied hinzufügen</h3>
@@ -182,17 +262,24 @@
       <div class="modal-buttons">
         <button onclick="saveMember()">Speichern</button>
         <button class="cancel" onclick="closeModal()">Abbrechen</button>
+        <button class="btn-remove" id="cancelBtn" style="display:none;" onclick="cancelMember()">Kündigen</button>
       </div>
     </div>
   </div>
 
   <script>
     let members = JSON.parse(localStorage.getItem('members')) || [];
+    let cancelled = JSON.parse(localStorage.getItem('cancelled')) || [];
     let editIndex = null;
 
-    function renderTable() {
-      const tbody = document.querySelector('#memberTable tbody');
-      tbody.innerHTML = '';
+    function renderTables() {
+      const activeBody = document.querySelector('#activeTable tbody');
+      const cancelledBody = document.querySelector('#cancelledTable tbody');
+      const select = document.getElementById('editSelect');
+
+      activeBody.innerHTML = '';
+      cancelledBody.innerHTML = '';
+      select.innerHTML = '<option value="">Mitglied auswählen...</option>';
 
       members.forEach((m, i) => {
         const row = document.createElement('tr');
@@ -208,21 +295,64 @@
           <td><input type="checkbox" ${m.adult ? 'checked' : ''} onchange="toggleCheckbox(${i}, 'adult')"></td>
           <td><input type="checkbox" ${m.child ? 'checked' : ''} onchange="toggleCheckbox(${i}, 'child')"></td>
         `;
-        tbody.appendChild(row);
+        activeBody.appendChild(row);
+
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `${m.firstName} ${m.lastName}`;
+        select.appendChild(opt);
+      });
+
+      cancelled.forEach(m => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${m.firstName}</td>
+          <td>${m.lastName}</td>
+          <td>${m.birthdate}</td>
+          <td>${m.phone}</td>
+          <td>${m.email}</td>
+          <td>${m.joinDate}</td>
+          <td>${m.cancelDate}</td>
+        `;
+        cancelledBody.appendChild(row);
       });
 
       localStorage.setItem('members', JSON.stringify(members));
+      localStorage.setItem('cancelled', JSON.stringify(cancelled));
     }
 
     function toggleCheckbox(index, field) {
       members[index][field] = !members[index][field];
       localStorage.setItem('members', JSON.stringify(members));
-      renderTable();
     }
 
     function openModal(edit = false) {
       document.getElementById('memberModal').style.display = 'flex';
       document.getElementById('modalTitle').textContent = edit ? 'Mitglied bearbeiten' : 'Neues Mitglied hinzufügen';
+      document.getElementById('cancelBtn').style.display = edit ? 'inline-block' : 'none';
+    }
+
+    function openEditModal() {
+      const select = document.getElementById('editSelect');
+      const index = select.value;
+      if (index === '') {
+        alert('Bitte ein Mitglied auswählen!');
+        return;
+      }
+      editIndex = index;
+      const m = members[index];
+      document.getElementById('firstName').value = m.firstName;
+      document.getElementById('lastName').value = m.lastName;
+      document.getElementById('birthdate').value = m.birthdate;
+      document.getElementById('phone').value = m.phone;
+      document.getElementById('email').value = m.email;
+      document.getElementById('joinDate').value = m.joinDate;
+      document.getElementById('boxing').checked = m.boxing;
+      document.getElementById('kickboxing').checked = m.kickboxing;
+      document.getElementById('adult').checked = m.adult;
+      document.getElementById('child').checked = m.child;
+
+      openModal(true);
     }
 
     function closeModal() {
@@ -232,16 +362,10 @@
     }
 
     function clearForm() {
-      document.getElementById('firstName').value = '';
-      document.getElementById('lastName').value = '';
-      document.getElementById('birthdate').value = '';
-      document.getElementById('phone').value = '';
-      document.getElementById('email').value = '';
-      document.getElementById('joinDate').value = '';
-      document.getElementById('boxing').checked = false;
-      document.getElementById('kickboxing').checked = false;
-      document.getElementById('adult').checked = false;
-      document.getElementById('child').checked = false;
+      document.querySelectorAll('#memberModal input').forEach(el => {
+        if (el.type === 'checkbox') el.checked = false;
+        else el.value = '';
+      });
     }
 
     function saveMember() {
@@ -259,14 +383,43 @@
       };
 
       if (!member.firstName || !member.lastName) {
-        alert("Bitte Vor- und Nachname eingeben!");
+        alert('Bitte Vor- und Nachname eingeben!');
         return;
       }
 
-      members.push(member);
-      localStorage.setItem('members', JSON.stringify(members));
-      renderTable();
+      if (editIndex !== null) {
+        members[editIndex] = member;
+      } else {
+        members.push(member);
+      }
+
+      renderTables();
       closeModal();
+    }
+
+    function cancelMember() {
+      if (editIndex === null) return;
+      const member = members[editIndex];
+      member.cancelDate = new Date().toISOString().split('T')[0];
+      cancelled.push(member);
+      members.splice(editIndex, 1);
+      renderTables();
+      closeModal();
+    }
+
+    function showTab(tab) {
+      document.getElementById('tabActive').classList.remove('active');
+      document.getElementById('tabCancelled').classList.remove('active');
+      document.getElementById('activeTable').style.display = 'none';
+      document.getElementById('cancelledTable').style.display = 'none';
+
+      if (tab === 'active') {
+        document.getElementById('tabActive').classList.add('active');
+        document.getElementById('activeTable').style.display = 'table';
+      } else {
+        document.getElementById('tabCancelled').classList.add('active');
+        document.getElementById('cancelledTable').style.display = 'table';
+      }
     }
 
     // Klick außerhalb schließt Modal
@@ -274,7 +427,7 @@
       if (e.target === document.getElementById('memberModal')) closeModal();
     }
 
-    renderTable();
+    renderTables();
   </script>
 </body>
 </html>
